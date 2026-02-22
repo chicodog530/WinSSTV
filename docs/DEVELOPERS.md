@@ -1,25 +1,45 @@
 # WinSSTV Developer Guide
 
-WinSSTV's core builds upon the heavily established QSSTV DSP pipeline, but with significant Windows-specific modifications utilizing the MSYS2 MinGW64 toolchain and Qt5.
+WinSSTV is a high-performance SSTV decoding engine for Windows, built from the ground up utilizing the robust DSP logic patterns found in MMSSTV, rather than the older QSSTV pipelines.
 
-## Environment Architecture
-To build WinSSTV from source, you cannot utilize MSVC. The project relies extensively on POSIX-like capabilities supplied via `mingw64`.
-*   **Platform**: MSYS2 (mingw64 terminal)
-*   **Compiler**: `g++` (v15.2 or equivalent) via MinGW64
-*   **Framework**: Qt5 (Strictly statically compiled, specifically `/qt5-static/` branch)
-*   **Core Dependencies**: FFTW3, Hamlib (Compiled statically), DirectX9/DXVA2/MFplat multimedia tools inside mingw-w64.
+## Core Technical Philosophy
+The primary goal of WinSSTV is **Robust Decoding**. While many decoders rely on simple frequency estimation or zero-crossing, WinSSTV implements a parallel resonant filter architecture that excels in high-noise environments (QRM) and low-signal-to-noise ratios.
 
-## Getting the Build Alive
-1. Fire up the `MSYS2 MinGW 64-bit` shell.
-2. Verify you have the proper tools installed: `pacman -S mingw-w64-x86_64-qt5 mingw-w64-x86_64-fftw mingw-w64-x86_64-hamlib`.
-3. Navigate to the `WinSSTV` root source directory.
-4. Execute `qmake` (specifically, path it to your `qt5-static/bin/qmake.exe` installation if overriding the global PATH).
-5. Run `mingw32-make release`.
+## Engine Architecture
 
-## Technical Layout
-- **The Core Engine** (`src/core/`): Heavily isolated mathematically from the front-end Qt UI threads. Contains the 12kHz/48kHz filter cascades spanning `syncProcessor` (for mode locking), `sstvrx` (the actual processing loop), and `visfskid` (reading the raw FSK data bits).
-- **Audio Overhaul** (`src/core/sound/`): The old POSIX ALSA dependencies are eradicated. Audio is funneled through native `soundwindows.cpp` WASAPI hooks, keeping latencies absolutely locked via Qt Audio abstractions downsampled mathematically.
-- **Deep Decode Mechanism** (`src/gui/mainwindow.cpp`): Instead of capturing a real microphone, `processDeepDecode()` completely circumvents the WASAPI classes, pipes an active 12kHz raw `.wav` payload stream through `wavIO`, artificially pumps its amplitude via multiplier matrices, forces the Core Engine `sstvRx` internal clock to mimic a real 48kHz session, and blitzes the buffer sequence synchronous to a customized UI rendering timer.
+### 1. Resonant Filter Pipeline (`src/core/dsp/`)
+The heart of the decoder is a set of parallel 2-pole IIR Resonant Filters (often called "Tanks"). These were ported from MMSSTV's `CIIRTANK` implementation.
 
-> [!WARNING]
-> Due to the tight linkage to `libhamlib.a` being a notoriously difficult dependency on Windows, `qsstv.pro` specifies direct object linking `-lhamlib` dynamically inside Mingw64 `/lib/` prior to static compression. If you face linkage crashes on a fresh Mingw build, check `LIBS+=` in `WinSSTV.pro`.
+*   **Frequencies**: 1100Hz, 1200Hz, 1300Hz, and 1900Hz.
+*   **Purpose**: These filters provide a real-time energy metric for specific SSTV tones, allowing the decoder to "hear" the signal through the static.
+
+### 2. VIS Decoding (`visDecoder`)
+Unlike standard decoders, WinSSTV does not estimate the frequency of the VIS bit. Instead, it performs a **Comparative Energy Analysis**.
+*   Bit 1 (1100Hz) vs Bit 0 (1300Hz).
+*   The bit is determined by which resonant filter reports higher energy at that specific sample index. This makes VIS auto-mode detection incredibly stable.
+
+### 3. Sync Detection (`syncProcessor`)
+WinSSTV employs a **Differential Sync Metric**.
+*   A sync pulse (1200Hz) is only validated if its energy significantly exceeds the 1900Hz energy.
+*   This prevents false triggers from white noise or high-frequency image content, maintaining a steady "lock" on the image slant.
+
+## Environment & Build
+The project is built for Windows using the **MSYS2 MinGW64** toolchain. 
+
+*   **Framework**: Qt5 (Static build recommended)
+*   **Compiler**: g++ (v15.2+)
+*   **Build System**: `qmake` (WinSSTV.pro)
+
+### Dependencies
+- **FFTW3**: Used for Waterfall FFT rendering.
+- **Hamlib**: Linked statically for rig control.
+- **WASAPI**: Native Windows audio backend via Qt Multimedia.
+
+## Project Layout
+- `src/core/`: The math-heavy DSP engine.
+- `src/gui/`: The Qt-based modern interface.
+- `tools/`: Python-based test signal generators.
+- `Portable/`: A bundled version of the app for zero-install distribution.
+
+## Contributing
+When adding new SSTV modes, ensure you utilize the `resonantFilter` energy arrays for consistency with the robust decoding chain. Any additions to the DSP layer should avoid absolute frequency measurements in favor of relative energy comparisons.
