@@ -1,0 +1,20 @@
+# Build artifacts
+release/
+debug/
+*.o
+*.a
+*.so
+*.dll
+*.exe
+Makefile*
+.qmake.stash
+object_script.WinSSTV.*
+
+# Logs and local config
+*.log
+*.txt
+!README.md
+!DEVELOPERS.md
+
+# User data
+Saved_Wav/
