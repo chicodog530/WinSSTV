@@ -1,0 +1,36 @@
+WinSSTV Initial User Instructions
+
+This document will help you get started utilizing WinSSTV natively on your machine!
+
+## 1. Setup Your Rig
+WinSSTV utilizes the standard Windows WASAPI sound system.
+
+1. Navigate to the **Settings** tab.
+2. In the "Audio Devices" section, use the dropdown menus.
+3. Select your "Audio Input" (this should point to your Radio's Line-In, Virtual Audio Cable, or Desktop microphone).
+4. Select your "Audio Output" (this should point to your Radio's Line-Out or your Desktop speakers to hear your transmission).
+5. Ensure the "Sample Rate Input" is locked to 48000 Hz, as this is required for the internal filters.
+
+## 2. Receiving a Signal
+Once your input is set up, the application is ALWAYS listening.
+
+1. Navigate to the **Receive** tab. 
+2. Ensure there is audio flowing into your selected input.
+3. The Waterfall display will immediately show incoming audio frequencies.
+4. If you have "Auto" selected in the Mode dropdown, the system will wait for an incoming VIS header (the specific 5-second digital burst at the front of an SSTV image) and lock on automatically.
+5. If you *know* the sender is broadcasting in a specific mode without a header (or it's too noisy), select the Mode (like "Martin 1") manually. The application will "eagerly snap" onto the mathematical rhythm of the image and decode instantly!
+
+## 3. Deep-Decoding a WAV File
+If you missed an image live but recorded a clean `.wav` audio file (Must be mono, 12kHz or 48kHz), you can decode it faster than real-time.
+
+1. Navigate to the **Receive** tab.
+2. Click **Deep Decode...**
+3. Select your `.wav` file.
+4. WinSSTV will blitz through the file and print the image instantly based on its internal auto-detect or your selected preferred dropdown Mode.
+
+## 4. Transmitting an Image
+1. Navigate to the **Transmit** tab.
+2. Click the `Open Image` button above the canvas and pick a .jpg or .png to send.
+3. Under the image preview, pick your Mode (Wait for the resize logic to kick in against the image bounds).
+4. Fill in your Callsign or Text, and click the canvas to stamp text onto the image natively.
+5. Press the `Start Playback` button. The application will begin broadcasting precision 48kHz tones to your selected Audio Output!
