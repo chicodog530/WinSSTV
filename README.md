@@ -15,5 +15,4 @@ Check out the included `instructions.txt` for a quick breakdown on how to connec
 
 For build and environment setup information, take a look at `DEVELOPERS.md`!
 
-### Credits
-WinSSTV was heavily adapted and built upon the core DSP and filtering implementations originally authored for Linux by the creators of QSSTV. Support for these features was rewritten exclusively for the Windows runtime.
+Brought to you by  KE0CGB    https://www.qrz.com/db/KE0CGB     chicodog530@yahoo.com
